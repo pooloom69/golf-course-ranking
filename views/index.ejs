@@ -1,0 +1,103 @@
+<%-include('header.ejs')%>
+
+<!-- block level -->
+
+      <div class="text" style="margin-top:70px; 
+      font-size: 25px;
+      margin-left: 400px;
+      margin-right: 250px;
+      position: relative; 
+      font-weight: bold;
+      font-size: 30px;
+         "
+      >
+         Explore Golf Course Difficulty Rankings In Your Area
+      </div>
+
+      <div class="container" style="
+      margin-left: 100px;
+      margin-right: 100px;
+      margin-top: 50px;
+      margin-bottom:300px;
+      position: relative;
+      ">
+         <div class="search-container">
+               <div class="input-group mb-3">
+                  <input type="text" class="form-control" placeholder="Search by City, Golf Course Name" aria-label="Recipient's username" aria-describedby="button-addon2">
+                  <button class="btn btn-outline-secondary" type="button"  id="button-addon2" >Search</button>
+                  
+               </div>
+         </div>
+      </div>   
+      
+      <div class="container" style="margin-top: 30px;">
+         <ul id="resultsList"></ul>
+      </div>
+
+
+      <script>
+
+      // Function to handle search button click
+      async function handleSearchButtonClick() {
+         // Get the input value
+         const location = document.querySelector(".form-control").value;
+
+         try {
+               // Make an AJAX GET request to the /search route on the server
+               const response = await fetch(`/search?location=${location}`);
+
+               // Parse the response data as JSON
+               const data = await response.json();
+               // console.log(data);
+               // Call the displayResults function to render the data on the page
+               displayResults(data);
+         } catch (error) {
+               console.error("Error:", error);
+         }
+      }
+
+      // Get the search button element by its ID
+      const searchButton = document.getElementById("button-addon2");
+
+      // Add a click event listener to the search button
+      searchButton.addEventListener("click", handleSearchButtonClick);
+
+      // Function to display the results on the page
+      function displayResults(data) {
+         const resultsList = document.getElementById("resultsList");
+         // Clear any existing results
+         resultsList.innerHTML = "";
+
+         if (!data.length) {
+         resultsDiv.innerHTML = 'No results found';
+         return;
+         }
+
+      // Iterate through the received data and create list items for each course
+         data.forEach(course => {
+               const courseItem = document.createElement("li");
+               courseItem.innerHTML = `
+                  <h2>${course.course_name}</h2>
+                  <p>Rating: ${course.rating}</p>
+                  <p>Slope Rating: ${course.slope_rating}</p>
+               `;
+               // li.textContent = course.course_name; // Assuming the API response contains a 'name' field
+               resultsList.appendChild(courseItem);
+         });
+      }
+      </script>
+
+
+
+      <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"></script>
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+      
+
+<%-include('footer.ejs')%>
+
+
+
+
+
