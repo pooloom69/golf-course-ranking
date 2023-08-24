@@ -2,7 +2,7 @@
 
 <!-- block level -->
 
-    <div class="text" style="margin-top:70px; 
+    <div class="text" style="margin-top:100px; 
     font-size: 25px;
     margin-left: 400px;
     margin-right: 250px;
@@ -72,21 +72,62 @@
         resultsDiv.innerHTML = 'No results found';
         return;
         }
+            // Create the table structure
+    const table = document.createElement('table');
+    table.className = "table caption-top";
+    
+    // Create table caption
+    const caption = document.createElement('caption');
+    caption.textContent = "Golf Courses";
+    table.appendChild(caption);
+    
+    // Create table header
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    ["", "Golf Course Name", "Rating", "Slope Rating"].forEach(headerText => {
+        const th = document.createElement('th');
+        th.scope = "col";
+        th.textContent = headerText;
+        headerRow.appendChild(th);
+    });
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
 
-    // Iterate through the received data and create list items for each course
-        data.forEach(course => {
-            const courseItem = document.createElement("li");
-            courseItem.innerHTML = `
-                <h2>${course.course_name}</h2>
-                <p>Rating: ${course.rating}</p>
-                <p>Slope Rating: ${course.slope_rating}</p>
-            `;
-            // li.textContent = course.course_name; // Assuming the API response contains a 'name' field
-            resultsList.appendChild(courseItem);
-        });
-    }
+    // Create table body
+    const tbody = document.createElement('tbody');
+
+    data.forEach((course, index) => {
+        const tr = document.createElement('tr');
+        
+        // Add index
+        const indexCell = document.createElement('th');
+        indexCell.scope = "row";
+        indexCell.textContent = index + 1;  // Remember, arrays are 0-indexed
+        tr.appendChild(indexCell);
+        
+        // Add course name
+        const nameCell = document.createElement('td');
+        nameCell.textContent = course.course_name;
+        tr.appendChild(nameCell);
+
+        // Add rating
+        const ratingCell = document.createElement('td');
+        ratingCell.textContent = course.rating;
+        tr.appendChild(ratingCell);
+
+        // Add slope rating
+        const slopeRatingCell = document.createElement('td');
+        slopeRatingCell.textContent = course.slope_rating;
+        tr.appendChild(slopeRatingCell);
+
+        tbody.appendChild(tr);
+    });
+
+    table.appendChild(tbody);
+    resultsList.appendChild(table);
+}
+
     </script>
-
 
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
