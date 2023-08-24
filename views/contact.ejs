@@ -3,12 +3,18 @@
 
 <form action = "/contactProc" method="post">
     <ul>
-        <li>문의하기</li> 
-        <li>Name: <input type ="text" name = "name" required></li>
-        <li>Phone : <input type ="text" name = "phone" required></li>
-        <li>Email: <input type ="text" name = "email" required></li>
-        <li>Memo<br>
-        <textarea name="memo" cols="50" rows="10"></textarea></li>
-        <button>문의하기</button>
+        <div class="mb-3" style="margin-top:40px">
+            <label for="exampleFormControlInput1" class="form-label">Name</label>
+            <input type="email" class="form-control w-50" id="exampleFormControlInput1" placeholder="">
+        </div>
+        <div class="mb-3">
+            <label for="exampleFormControlInput1" class="form-label">Email</label>
+            <input type="email" class="form-control w-50" id="exampleFormControlInput1" placeholder="">
+        </div>
+        <div class="mb-3">
+            <label for="exampleFormControlTextarea1" class="form-label">Message</label>
+            <textarea class="form-control w-50" id="exampleFormControlTextarea1" rows="4"></textarea>
+        </div>
+        <button type="button" class="btn btn-outline-secondary">Send</button>
     </ul>
 <%-include('footer.ejs')%>
