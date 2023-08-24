@@ -19,66 +19,6 @@ app.set('views','./views')
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(express.static('public'))  
 
-// let courseNames;
-// let courseInfo;
-// let courseNamesUSGA;
-
-
-// // utility functions to normalize course names and check if two courses might be the same.
-// function normalizeName(name) {
-//     if (!name || typeof name !== 'string') {
-//         return '';  // or handle it in another appropriate way
-//     }
-
-//     name = name.toLowerCase().trim(); // convert to lowercase 
-//     name = name.replace(/[^a-z0-9\s]/g, ""); // remove non-alphanumeric characters
-//     name = name.replace(/\s+/g, " "); // convert multiple spaces to single space
-//     const removeWords = ["the", "course", "club", "country"];
-//     name = name.split(' ').filter(word => !removeWords.includes(word)).join(' '); // remove certain words
-//     return name;
-// }
-
-// function courseMatch(name1, name2) {
-//     // Normalize both names
-//     const normalized1 = normalizeName(name1);
-//     const normalized2 = normalizeName(name2);
-
-//     // Substring check
-//     if(normalized1.includes(normalized2) || normalized2.includes(normalized1)) {
-//         return true;
-//     }
-
-//     // Similarity check
-//     const similarity = stringSimilarity.compareTwoStrings(normalized1, normalized2);
-//     if(similarity > 0.8) {
-//         return true;
-//     }
-
-//     // More advanced checks can be added here...
-
-//     return false;
-// }
-
-
-
-// function getSlopeAndRatingFromCrawledData(courseNames, courseNamesUSGA) {
-//     const courseData = courseNamesUSGA.find(data => {
-//         const isMatch = courseMatch(data.name, courseNames);
-//         console.log(`Checking match for "${data.name}" against "${courseNames}": ${isMatch}`);
-//         return isMatch;
-//     });
-//     return courseData ? { slope: courseData.slope, rating: courseData.rating } : null;
-// }
-
-//find method loops through each item (referred to as data in the callback function) in the crawledData array 
-//and executes the given callback function. 
-//The first item for which the callback function returns true will be returned by the find method.
-
-//Inside the callback function, we're calling the utility function courseMatch(data.name, courseName). 
-//This function checks if the current data.name from the crawledData array matches the provided courseName. 
-//If a match is found, courseData will hold that matched object. 
-//If no matches are found, courseData will be undefined.
-
 
 // Database connection configuration * move this to environment variables later
 const db = {
@@ -161,45 +101,6 @@ async function insertGolfCourseData(courseInfo) {
     }
 }
 
-
-// // Function to insert golf course data into the database
-// async function insertGolfCourseData(courseInfo) {
-//     let connection;
-//     try {
-//         // Establish a database connection from the pool
-//         connection = await pool.getConnection();
-
-//         // Begin a transaction
-//         await connection.beginTransaction();
-//             // Insert the golf course information into the database
-//             for (let i = 0; i < courseInfo.Course_Rating.length; i++) {
-//                 const teeName = courseInfo.Course_Rating[i].teeName;
-//                 const rating = courseInfo.Course_Rating[i].rating;
-//                 const slopeRating = courseInfo.Course_SlopeRating[i].slopeRating;
-
-//                 await connection.query(
-//                     "INSERT INTO golf_courses (course_name, rating, slope_rating) VALUES (?, ?, ?)",
-//                     [courseInfo.Golfcourse_Name, `${teeName} ${rating}`, `${teeName} ${slopeRating}`]
-//                 );
-//             }
-//             // Commit the transaction
-//             await connection.commit();
-//             console.log("Data inserted successfully into db");  
-//             existingCourseNames.add(courseInfo.Golfcourse_Name);
-        
-//     } catch (error) {
-//         // Rollback the transaction on error
-//         if (connection) {
-//             await connection.rollback();
-//         }
-//         console.error("Failed to insert data into the database:", error);
-//     } finally {
-//         // Release the database connection
-//         if (connection) {
-//             connection.release();
-//         }
-//     }
-// }
 let existingCourseNames = new Set();
 
 // Fetch all existing course names and store in the Set
@@ -414,31 +315,6 @@ async function fetchGolfCourseDetails(courseNames) {
 }
 
 
-
-
-// async function fetchGolfCourseDetails(courseNames) {
-//     try {
-//         const [results] = await pool.query(`
-//             SELECT 
-//                 gc.course_name,
-//                 gc.rating,
-//                 gc.slope_rating
-//             FROM 
-//                 golf_courses gc
-//             JOIN 
-//                 api_to_golf_courses atgc ON gc.course_id = atgc.course_id
-//             JOIN 
-//                 golf_course_mappings gcm ON atgc.api_course_id = gcm.api_course_id
-//             WHERE 
-//                 gcm.api_course_name IN (?);
-//         `, [courseNames]);
-
-//         return results;
-//     } catch (error) {
-//         console.error("Error fetching golf course details:", error);
-//         throw error;
-//     }
-// }
 
 // Add an interceptor to catch and log errors globally
 axios.interceptors.response.use(
