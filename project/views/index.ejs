@@ -2,102 +2,217 @@
 
 <!-- block level -->
 
-      <div class="text" style="margin-top:70px; 
-      font-size: 25px;
-      margin-left: 400px;
-      margin-right: 250px;
-      position: relative; 
-      font-weight: bold;
-      font-size: 30px;
-         "
-      >
-         Explore Golf Course Difficulty Rankings In Your Area
-      </div>
+   <div class="text" style="margin-top:100px; 
+   font-size: 25px;
+   margin-left: 400px;
+   margin-right: 250px;
+   position: relative; 
+   font-weight: bold;
+   font-size: 30px;
+      "
+   >
+      Explore Golf Course Difficulty Rankings In Your Area
+   </div>
 
-      <div class="container" style="
-      margin-left: 100px;
-      margin-right: 100px;
-      margin-top: 50px;
-      margin-bottom:300px;
-      position: relative;
-      ">
-         <div class="search-container">
-               <div class="input-group mb-3">
-                  <input type="text" class="form-control" placeholder="Search by City, Golf Course Name" aria-label="Recipient's username" aria-describedby="button-addon2">
-                  <button class="btn btn-outline-secondary" type="button"  id="button-addon2" >Search</button>
-                  
-               </div>
-         </div>
-      </div>   
+   <div class="container" style="
+   margin-left: 100px;
+   margin-right: 100px;
+   margin-top: 50px;
+   margin-bottom:170px;
+   position: relative;
+   ">
+      <div class="search-container">
+            <div class="input-group mb-3">
+               <input type="text" class="form-control" placeholder="Search by City, Golf Course Name" aria-label="Recipient's username" aria-describedby="button-addon2">
+               <button class="btn btn-outline-secondary" type="button"  id="button-addon2" >Search</button>
+               
+            </div>
+      </div>
+      <div class="form-check form-check-inline">
+         <input class="form-check-input" type="checkbox" id="scratchGolfer" value="option1">
+         <label class="form-check-label" for="scratchGolfer">Scratch Golfer</label>
+      </div>
       
-      <div class="container" style="margin-top: 30px;">
-         <ul id="resultsList"></ul>
+      <div class="form-check form-check-inline">
+         <input class="form-check-input" type="checkbox" id="otherGolfer" value="option2">
+         <label class="form-check-label" for="otherGolfer">Bogey golfers and others with handicaps</label>
       </div>
+   </div>   
+   
+   <div class="container" style="margin-top: 30px;">
+      <ul id="resultsList"></ul>
+   </div>
 
 
-      <script>
-
-      // Function to handle search button click
+   <script>
       async function handleSearchButtonClick() {
-         // Get the input value
-         const location = document.querySelector(".form-control").value;
+            // get the input value
+            const location = document.querySelector(".form-control").value;
+            
+            // Check which golfer type checkbox is selected
+            const isScratchGolfer = document.getElementById("scratchGolfer").checked;
+            const isOtherGolfer = document.getElementById("otherGolfer").checked;
 
-         try {
-               // Make an AJAX GET request to the /search route on the server
+            // Ensure only one checkbox is selected at a time
+            if (isScratchGolfer && isOtherGolfer) {
+               alert("Please select only one type of golfer.");
+               return;
+            }
+
+            if (!isScratchGolfer && !isOtherGolfer) {
+               alert("Please select a type of golfer.");
+               return;
+            }
+
+            try {
                const response = await fetch(`/search?location=${location}`);
-
-               // Parse the response data as JSON
                const data = await response.json();
-               // console.log(data);
-               // Call the displayResults function to render the data on the page
-               displayResults(data);
-         } catch (error) {
+
+                displayResults(data, isScratchGolfer);  // Pass the golfer type to displayResults
+            } catch (error) {
                console.error("Error:", error);
-         }
+            }
       }
 
-      // Get the search button element by its ID
+        //     async function handleSearchButtonClick() {
+        //     // Get the input value
+        //     const location = document.querySelector(".form-control").value;
+
+        //     try {
+        //         // Make an AJAX GET request to the /search route on the server
+        //         const response = await fetch(`/search?location=${location}`);
+
+        //         // Parse the response data as JSON
+        //         const data = await response.json();
+        //         // console.log(data);
+        //         // Call the displayResults function to render the data on the page
+        //         displayResults(data);
+        //     } catch (error) {
+        //         console.error("Error:", error);
+        //     }
+        // }
+        // Get the search button element by its ID
       const searchButton = document.getElementById("button-addon2");
 
-      // Add a click event listener to the search button
-      searchButton.addEventListener("click", handleSearchButtonClick);
+        // Add a click event listener to the search button
+      searchButton.addEventListener("click", handleSearchButtonClick);    
 
-      // Function to display the results on the page
-      function displayResults(data) {
+
+
+      function extractNumber(text) {
+            const parts = text.split(' ');
+            if (parts.length > 1) {
+               return parseFloat(parts[1]);
+            }
+            return 0;  // default value if unable to extract number
+      }
+      
+      function sortCourses(data, golferType) {
+            const ratingWeight = golferType === 'scratch' ? 0.7 : 0.3;
+            const slopeWeight = golferType === 'scratch' ? 0.3 : 0.7;
+
+            return data.slice().sort((a, b) => {
+               const ratingA = extractNumber(a.rating);
+               const ratingB = extractNumber(b.rating);
+               const slopeRatingA = extractNumber(a.slope_rating);
+               const slopeRatingB = extractNumber(b.slope_rating);
+
+               const averageA = (ratingA * ratingWeight + slopeRatingA * slopeWeight);
+               const averageB = (ratingB * ratingWeight + slopeRatingB * slopeWeight);
+
+               return averageB - averageA;  // For descending order
+            });
+      }
+
+      function createTable(dataForDisplay) {
+            // Create the table structure
+            const table = document.createElement('table');
+            table.className = "table caption-top";
+            
+            // Create table caption
+            const caption = document.createElement('caption');
+            caption.textContent = "Golf Courses";
+            table.appendChild(caption);
+            
+            // Create table header
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            ["", "Golf Course Name", "Rating", "Slope Rating"].forEach(headerText => {
+               const th = document.createElement('th');
+               th.scope = "col";
+               th.textContent = headerText;
+               headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+            
+            // Create table body
+            const tbody = document.createElement('tbody');
+
+            dataForDisplay.forEach((course, index) => {
+               const tr = document.createElement('tr');
+               
+                // Add index
+               const indexCell = document.createElement('th');
+               indexCell.scope = "row";
+                indexCell.textContent = index + 1;  // Remember, arrays are 0-indexed
+               tr.appendChild(indexCell);
+               
+                // Add course name
+               const nameCell = document.createElement('td');
+               nameCell.textContent = course.course_name;
+               tr.appendChild(nameCell);
+
+                // Add rating
+               const ratingCell = document.createElement('td');
+               ratingCell.textContent = extractNumber(course.rating).toString();
+               tr.appendChild(ratingCell);
+
+                // Add slope rating
+               const slopeRatingCell = document.createElement('td');
+               slopeRatingCell.textContent = extractNumber(course.slope_rating).toString();
+               tr.appendChild(slopeRatingCell);
+
+               tbody.appendChild(tr);
+            });
+
+            table.appendChild(tbody);
+            // Append the created table to some container or display area on your website
+            resultsList.appendChild(table);
+      }
+
+
+        // Function to display the results on the page
+      function displayResults(data, isScratchGolfer) {
          const resultsList = document.getElementById("resultsList");
          // Clear any existing results
          resultsList.innerHTML = "";
 
          if (!data.length) {
-         resultsDiv.innerHTML = 'No results found';
-         return;
+            resultsDiv.innerHTML = 'No results found';
+            return;
          }
 
-      // Iterate through the received data and create list items for each course
-         data.forEach(course => {
-               const courseItem = document.createElement("li");
-               courseItem.innerHTML = `
-                  <h2>${course.course_name}</h2>
-                  <p>Rating: ${course.rating}</p>
-                  <p>Slope Rating: ${course.slope_rating}</p>
-               `;
-               // li.textContent = course.course_name; // Assuming the API response contains a 'name' field
-               resultsList.appendChild(courseItem);
-         });
-      }
-      </script>
+         if (isScratchGolfer) {
+            const sortedForScratch = sortCourses(data, 'scratch');
+            createTable(sortedForScratch); 
+                // You can filter or sort results specifically for scratch golfers here if needed
+            } else {
+               const sortedForOthers = sortCourses(data, 'others');
+               createTable(sortedForOthers);
+                // You can filter or sort results specifically for other golfers here if needed
+            }
+      }    
+   
+   </script>
 
 
+   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.min.js" integrity="sha384-Rx+T1VzGupg4BHQYs2gCW9It+akI2MM/mndMCy36UVfodzcJcF0GGLxZIzObiEfa" crossorigin="anonymous"></script>
 
-      <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-      <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"></script>
-      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
-      
 
 <%-include('footer.ejs')%>
-
-
-
 
 
