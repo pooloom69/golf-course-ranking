@@ -1,5 +1,5 @@
 const express = require('express');
-const axios = require('axios'); //axios library to fetch the content of a webpage, and cheerio to parse and extract data from the fetched webpage content.
+const axios = require('axios'); 
 const cheerio = require('cheerio');
 const app = express();
 const ejs = require('ejs')
@@ -10,22 +10,30 @@ const mysql = require('mysql2/promise');
 const fs = require('fs'); 
 const csvParser = require('csv-parser');
 
-const port = process.env.PORT || 3000
+const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 require('dotenv').config()
+
+const path = require('path');
+app.set('views', path.join(__dirname, 'views'));
+app.use(express.static(path.join(__dirname, 'public')));
 app.set('view engine','ejs')
-app.set('views','./views')
 app.use(bodyParser.urlencoded({ extended: false }))
-app.use(express.static('public'))  
 
+const csvFilePath = process.env.CSV_PATH || path.join(__dirname, 'courseCode.csv');
+const fileStream = fs.createReadStream(csvFilePath);
 
-// Database connection configuration * move this to environment variables later
+fileStream.on('error', (err) => {
+    console.error('Error reading the CSV file:', err.message);
+});
+
 const db = {
-    database: "golfcourse_data",
-    host: "127.0.0.1",
+    database: "golfcourse_data", // default to "golfcourse_data" if not set
+    host: process.env.STACKHERO_MARIADB_HOST || "127.0.0.1",
     user: "root",
-    password: "thfdk69",
+    password: process.env.STACKHERO_MARIADB_ROOT_PASSWORD || "thfdk69", // Please remove this default password for security reasons
+    port: 3306
 };
 
 // Create a pool to manage connections to the database
@@ -47,6 +55,7 @@ async function golfCourseExists(courseName) {
         }
     }
 }
+
 
 //inserts a new golf course into the database. It first checks if the course already exists, and if not, 
 //it inserts the course ratings and slope ratings into the database.
@@ -185,11 +194,11 @@ async function getGolfCourseInfo(keyword) {
 const golfCourseKeywords = [];
 let lineCount = 0; // variable to track the current line number
     
-fs.createReadStream('courseCode.csv')
+fs.createReadStream(csvFilePath)
     .pipe(csvParser())
     .on('data', (row) => {
         lineCount++;
-        if (lineCount < 352) return; // * Skip lines before 170 데이터 추가할때!!
+        if (lineCount < 397) return; // * Skip lines before 170 데이터 추가할때!!
 
         const keyword = row.Keyword;
         // Check if course does not exist in our Set
@@ -316,6 +325,9 @@ async function fetchGolfCourseDetails(courseNames) {
 
 
 
+
+
+
 // Add an interceptor to catch and log errors globally
 axios.interceptors.response.use(
     (response) => response,
@@ -355,10 +367,11 @@ app.get('/NorthernCali', function (req, res) {
     res.render('NorthernCali') 
 })
 
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
 
+// const PORT = process.env.PORT || 3000;
+// app.listen(PORT, () => {
+//     console.log(`Server is running on port ${PORT}`);
+// });
 
 app.listen(port)
 
